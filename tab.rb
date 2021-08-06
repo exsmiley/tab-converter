@@ -138,4 +138,4 @@ class ChordCollection
 end
 
 
-puts Tab.construct_from_file("example.txt")
+# puts Tab.construct_from_file("example.txt")
