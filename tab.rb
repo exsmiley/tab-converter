@@ -1,5 +1,26 @@
 require "./utils.rb"
 
+class InstrumentConfig
+
+    def initialize(line_base_notes)
+        @line_base_notes = line_base_notes
+    end
+
+    def num_strings
+        return @line_base_notes.length
+    end
+
+    def get_base_note(string_num)
+        return @line_base_notes[string_num]
+    end
+
+    def self.standard_guitar
+        line_base_notes = [Note.from_note("E4"), Note.from_note("B3"), Note.from_note("G3"), Note.from_note("D3"), Note.from_note("A2"), Note.from_note("E2")]
+        return InstrumentConfig.new(line_base_notes)
+    end
+end
+
+
 class TabColumn 
     # string_mapping is a hash that maps string name to fret number
     # fret number range (0 -> num_frets_of_instrument)
@@ -19,36 +40,36 @@ class Tab
     # for now assume all are from guitar
     # assume everything for one 6 string guitar
     def self.construct_from_text(text)
-        # TODO return a new Tab object from a single string
         lines = text.split("\n")
+        instrument = InstrumentConfig.standard_guitar
 
         # need to collect the lines into line groups that we can iterate through
         line_groups = []
         current_line_group = []
-        line_group_length = 6
 
         lines.each do |line|
             unless !line.include?("-")
                 current_line_group.append(line)
 
-                if current_line_group.length == line_group_length
+                if current_line_group.length == instrument.num_strings
                     line_groups.append(current_line_group)
                     current_line_group = []
                 end
             end
         end
 
-        line_base_notes = [Note.from_note("E4"), Note.from_note("B3"), Note.from_note("G3"), Note.from_note("D3"), Note.from_note("A2"), Note.from_note("E2")]
         chords = ChordCollection.new()
 
         # need to read every 6 lines until there are none left
         line_groups.each do |line_group|
+            puts line_group
             (0...line_group[0].length).each do |index|
                 potential_notes = []
                 line_group.each_with_index do |line, group_num|
                     if line[index].is_number?
+                        puts "#{group_num}, #{index}, #{line[index]}"
                         semitones_above = line[index].to_i
-                        potential_notes.append(line_base_notes[group_num].get_num_semitones_above(semitones_above))
+                        potential_notes.append(instrument.get_base_note(group_num).get_num_semitones_above(semitones_above))
                     end
                 end
                 chords.add_chord(Chord.new(potential_notes))
@@ -138,4 +159,4 @@ class ChordCollection
 end
 
 
-# puts Tab.construct_from_file("example.txt")
+puts Tab.construct_from_file("example.txt")
